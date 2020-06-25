@@ -1,0 +1,16 @@
+{
+  "name": "keras_js_maps",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://aidanzev@bitbucket.org/aidanzev/keras_js_maps.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/aidanzev/keras_js_maps#readme"
+}
