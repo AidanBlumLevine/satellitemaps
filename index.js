@@ -2,26 +2,32 @@ var zoom = 16;
 var sat_cache = [];
 var net_cache = [];
 $(document).ready(function () {
-    var lat = 40.7128;
+    start();
+});
+
+async function start(){
+    var lat = 40.7182;
     var lon = -74.0060;
     n = Math.pow(2, zoom);
     x = Math.floor((lon + 180) / 360 * n);
     y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
 
     m_ctx = $('.map')[0].getContext('2d');
-    n_ctx = $('.n_map')[0].getContext('2d');
-    n_start();
+    //n_ctx = $('.n_map')[0].getContext('2d');
+
+    model = await tf.loadLayersModel('model/model.json');
+
     createMap();
-});
+}
 
 function createMap() {
-    for (var xTile = 0; xTile < 4; xTile++) {
-        for (var yTile = 0; yTile < 4; yTile++) {
+    for (var yTile = 0; yTile < 4; yTile++) {
+        for (var xTile = 0; xTile < 4; xTile++) {
             fetchSatTile(x + xTile, y + yTile).then(cached => {
                 m_ctx.drawImage(cached.img, (cached.x - x) * 256, (cached.y - y) * 256);
             });
             fetchNetTile(x + xTile, y + yTile).then(cached => {
-                n_ctx.drawImage(cached.img, (cached.x - x) * 256, (cached.y - y) * 256);
+                //n_ctx.drawImage(cached.img, (cached.x - x) * 256, (cached.y - y) * 256);
             });
         }
     }
@@ -35,7 +41,7 @@ function fetchSatTile(xTile, yTile) {
         } else {
             var img = new Image();
             img.crossOrigin = "Anonymous"
-            img.src = 'http://mt0.google.com/vt/lyrs=s&x=' + xTile + '&y=' + yTile + '&z=' + zoom;
+            img.src = 'http://mt0.google.com/vt/lyrs=s@1000000&x=' + xTile + '&y=' + yTile + '&z=' + zoom;
             img.onload = function () {
                 var c = { img: img, x: xTile, y: yTile }
                 sat_cache.push(c);
@@ -53,6 +59,7 @@ function fetchNetTile(xTile, yTile) {
         } else {
             fetchSatTile(xTile, yTile).then(cached => {
                 let tensor = tf.browser.fromPixels(cached.img).expandDims(0);
+                tensor = tensor.add(tf.scalar(30).sub(tf.mean(tensor)));
                 var out = model.predict(tensor.add(tf.scalar(-127.5)).div(tf.scalar(127.5)));
                 out = out.squeeze().add(tf.scalar(1)).div(tf.scalar(2));
 
@@ -60,24 +67,22 @@ function fetchNetTile(xTile, yTile) {
                 canvas.width = 256;
                 canvas.height = 256;
                 tf.browser.toPixels(out, canvas);
-                var img = new Image();
-                img.src = canvas.toDataURL("image/png");
-                img.onload = function () {
-                    var c = { img: img, x: xTile, y: yTile }
-                    net_cache.push(c);
-                    resolve(c);
-                }
-                canvas.remove();
+                // var img = new Image();
+                // img.src = canvas.toDataURL("image/png");
+                // console.log(img.src);
+                // img.onload = function () {
+                //     var c = { img: img, x: xTile, y: yTile }
+                //     net_cache.push(c);
+                //     // URL.revokeObjectURL(img.src);
+                //     // canvas.remove();
+                //     resolve(c);
+                // }
+                resolve(null);
+                $('body')[0].appendChild(canvas);
+
             });
         }
     });
-}
-
-function n_start() {
-    model = tf.loadLayersModel('model/model.json');
-    var out = model.predict(tf.zeros([1, 256, 256, 3]));
-    tf.browser.toPixels(out.reshape([256, 256, 3]), $('.outImg').get(0));
-    $('input').show();
 }
 
 document.onkeydown = function (e) {
