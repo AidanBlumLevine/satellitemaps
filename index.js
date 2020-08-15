@@ -93,7 +93,7 @@ async function start() {
             "featureType": "poi.place_of_worship",
             "elementType": "all",
             "stylers": [
-                { 
+                {
                     "visibility": "off"
                 }
             ]
@@ -147,7 +147,7 @@ async function start() {
     createMap();
 }
 
-function getEncodedStyles(styles) {
+function getEncodedStyles(styles) { //converts the readable styles to tile server styles. not my code
     var ret = "";
     var styleparse_types = { "all": "0", "administrative": "1", "administrative.country": "17", "administrative.land_parcel": "21", "administrative.locality": "19", "administrative.neighborhood": "20", "administrative.province": "18", "landscape": "5", "landscape.man_made": "81", "landscape.natural": "82", "poi": "2", "poi.attraction": "37", "poi.business": "33", "poi.government": "34", "poi.medical": "36", "poi.park": "40", "poi.place_of_worship": "38", "poi.school": "35", "poi.sports_complex": "39", "road": "3", "road.arterial": "50", "road.highway": "49", "road.local": "51", "transit": "4", "transit.line": "65", "transit.station": "66", "water": "6" };
     var styleparse_elements = { "all": "a", "geometry": "g", "geometry.fill": "g.f", "geometry.stroke": "g.s", "labels": "l", "labels.icon": "l.i", "labels.text": "l.t", "labels.text.fill": "l.t.f", "labels.text.stroke": "l.t.s" };
