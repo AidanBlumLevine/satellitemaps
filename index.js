@@ -93,7 +93,7 @@ async function start() {
             "featureType": "poi.place_of_worship",
             "elementType": "all",
             "stylers": [
-                {
+                { 
                     "visibility": "off"
                 }
             ]
