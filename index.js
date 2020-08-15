@@ -16,6 +16,7 @@ async function start() {
     n_ctx = $('.n_map')[0].getContext('2d');
 
     model = await tf.loadLayersModel('model/model.json');
+    $('.loader').remove();
     console.log(getEncodedStyles([
         {
             "featureType": "all",
