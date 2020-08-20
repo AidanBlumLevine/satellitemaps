@@ -1,6 +1,7 @@
 var zoom = 16;
 var sat_cache = [];
 var net_cache = [];
+var loading = 0;
 $(document).ready(function () {
     start();
 });
@@ -11,12 +12,21 @@ async function start() {
     n = Math.pow(2, zoom);
     x = Math.floor((lon + 180) / 360 * n);
     y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
-
-    m_ctx = $('.map')[0].getContext('2d');
-    n_ctx = $('.n_map')[0].getContext('2d');
+    var m_canvas = $('.map')[0];
+    m_ctx = m_canvas.getContext('2d');
+    var n_canvas = $('.n_map')[0];
+    n_ctx = n_canvas.getContext('2d');
 
     model = await tf.loadLayersModel('model/model.json');
     $('.loader').remove();
+
+    var width = Math.min(m_canvas.offsetWidth, 1024);
+    var height = Math.min(m_canvas.offsetHeight, 1024);
+    m_canvas.width = width;
+    m_canvas.height = height;
+    n_canvas.width = width;
+    n_canvas.height = height;
+
     console.log(getEncodedStyles([
         {
             "featureType": "all",
@@ -184,14 +194,10 @@ function getEncodedStyles(styles) { //converts the readable styles to tile serve
 }
 
 function createMap() {
+    loading+=16;
     for (var yTile = 0; yTile < 4; yTile++) {
         for (var xTile = 0; xTile < 4; xTile++) {
-            // fetchSatTile(x + xTile, y + yTile).then(sat => {
-            //     m_ctx.drawImage(sat.img, (sat.x - x) * 256, (sat.y - y) * 256);
-            //     fetchNetTile(x + xTile, y + yTile, sat).then(net => {
-            //         n_ctx.drawImage(net.img, (net.x - x) * 256, (net.y - y) * 256);
-            //     });
-            // });
+            $('.quick-loader').show();
             fetchTile(x + xTile, y + yTile);
         }
     }
@@ -203,6 +209,10 @@ function fetchTile(xTile, yTile) {
         m_ctx.drawImage(matches[0].img, (matches[0].x - x) * 256, (matches[0].y - y) * 256);
         var matches2 = net_cache.filter(c => c.x == xTile && c.y == yTile);
         n_ctx.drawImage(matches2[0].img, (matches2[0].x - x) * 256, (matches2[0].y - y) * 256);
+        loading--;
+        if(loading == 0){
+            $('.quick-loader').hide();
+        }
     } else {
         var img = new Image();
         img.crossOrigin = "Anonymous"
@@ -222,78 +232,40 @@ function fetchTile(xTile, yTile) {
                 var c = { img: canvas, x: xTile, y: yTile }
                 net_cache.push(c);
                 n_ctx.drawImage(c.img, (c.x - x) * 256, (c.y - y) * 256);
+                loading--;
+                if(loading == 0){
+                    $('.quick-loader').hide();
+                }
             });
-
-            // $('body')[0].appendChild(canvas);
-            setTimeout(function () {
-
-            }, 500);
         }
     }
-}
-
-function fetchSatTile(xTile, yTile) {
-    return new Promise((resolve, reject) => {
-        var matches = sat_cache.filter(c => c.x == xTile && c.y == yTile);
-        if (matches.length > 0) {
-            resolve(matches[0]);
-        } else {
-            var img = new Image();
-            img.crossOrigin = "Anonymous"
-            img.src = 'http://mt0.google.com/vt/lyrs=s@1000000&x=' + xTile + '&y=' + yTile + '&z=' + zoom;
-            img.onload = function () {
-                var c = { img: img, x: xTile, y: yTile }
-                sat_cache.push(c);
-                resolve(c);
-            }
-        }
-    });
-}
-
-function fetchNetTile(xTile, yTile, sat) {
-    return new Promise((resolve, reject) => {
-        var matches = net_cache.filter(c => c.x == xTile && c.y == yTile);
-        if (matches.length > 0) {
-            resolve(matches[0]);
-        } else {
-            let tensor = tf.browser.fromPixels(sat.img).expandDims(0);
-            var out = model.predict(tensor.add(tf.scalar(-127.5)).div(tf.scalar(127.5)));
-            out = out.squeeze().add(tf.scalar(1)).div(tf.scalar(2));
-            var canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 256;
-            tf.browser.toPixels(out, canvas);
-            var c = { img: canvas, x: xTile, y: yTile }
-            net_cache.push(c);
-            resolve(c);
-            //$('body')[0].appendChild(canvas);
-        }
-    });
 }
 
 document.onkeydown = function (e) {
-    switch (e.which) {
-        case 37:
-            x -= 1;
-            createMap();
-            break;
+    if (loading == 0) {
+        switch (e.which) {
+            case 37:
+                x -= 1;
+                createMap();
+                break;
 
-        case 38:
-            y -= 1;
-            createMap();
-            break;
+            case 38:
+                y -= 1;
+                createMap();
+                break;
 
-        case 39:
-            x += 1;
-            createMap();
-            break;
+            case 39:
+                x += 1;
+                createMap();
+                break;
 
-        case 40:
-            y += 1;
-            createMap();
-            break;
+            case 40:
+                y += 1;
+                createMap();
+                break;
 
-        default: return;
+            default: return;
+        }
+        e.preventDefault();
     }
-    e.preventDefault();
 };
