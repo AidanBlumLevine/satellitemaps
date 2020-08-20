@@ -22,6 +22,7 @@ async function start() {
 
     var width = Math.min(m_canvas.offsetWidth, 1024);
     var height = Math.min(m_canvas.offsetHeight, 1024);
+    console.log(width+","+height);
     m_canvas.width = width;
     m_canvas.height = height;
     n_canvas.width = width;
