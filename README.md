@@ -12,7 +12,7 @@ This repo also contains the code used to collect the satellite and street map pa
 
 The model definitely needs to be trained longer for good results, but it is still interesting:
 
-![example](https://github.com/AidanBlumLevine/satellitemaps/blob/master/map2.png)
+![example](https://github.com/AidanBlumLevine/satellitemaps/blob/master/map1.png)
 
 If you run server.js and go to localhost:5000/generate, it will download a zip with 500 random pairs from around NYC.
 
