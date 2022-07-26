@@ -2,11 +2,11 @@
 
 This is a website viewer of a pix2pix GAN model trained to convert satellite images to street maps.
 
-The website is showing a section of New York City but you can move freely to anywhere in the globe.
+You start in New York City but you can move freely to anywhere in the globe (albeit slowly).
 
 You can move the preview with the arrow keys.
 
-Demo: https://aidanblumlevine.github.io/satellitemaps
+**Demo: https://aidanblumlevine.github.io/satellitemaps**
 
 This repo also contains the code used to collect the satellite and street map pairs for training.
 
